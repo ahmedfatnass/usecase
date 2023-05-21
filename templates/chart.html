@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        font-family: sans-serif;
+      }
+      .chartMenu {
+        width: 100vw;
+        height: 40px;
+        background: #1A1A1A;
+        color: rgba(54, 162, 235, 1);
+      }
+      .chartMenu p {
+        padding: 10px;
+        font-size: 20px;
+      }
+      .chartCard {
+        width: 100vw;
+        height: calc(100vh - 40px);
+        background: rgba(54, 162, 235, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .chartBox {
+        width: 70%;
+        padding: 20px;
+        border-radius: 20px;
+        border: solid 3px rgba(54, 162, 235, 1);
+        background: white;
+      }
+      
+      .btn {
+        background-color: DodgerBlue; /* Blue background */
+        border: none; /* Remove borders */
+        color: white; /* White text */
+        padding: 8px 10px; /* Some padding */
+        font-size: 16px; /* Set a font size */
+        cursor: pointer; /* Mouse pointer on hover */
+        display: flex;
+        float: right;
+      }
+      .btn:hover {
+          background-color: RoyalBlue;
+        }
+    </style>
+  </head>
+  <body>
+    <div class="chartCard">
+      <div class="chartBox">
+        <button class="btn" id="zoomButton"><i class="fa fa-search-minus"></i></button>
+        <canvas id="myChart"></canvas>
+        <input type="week" onchange="filterbarplot(this)"/>
+      </div>
+    </div>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.1.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-pan"></script>
+    <script>
+  
+    const data = {
+      labels: {{time | tojson}},
+      datasets: [{
+        label: 'Production infrajournalière',
+        data: {{value | tojson}},
+        backgroundColor: [
+          'rgba(255, 26, 104, 0.2)',
+          'rgba(54, 162, 235, 0.2)',
+          'rgba(255, 206, 86, 0.2)',
+          'rgba(75, 192, 192, 0.2)',
+          'rgba(153, 102, 255, 0.2)',
+          'rgba(255, 159, 64, 0.2)',
+          'rgba(0, 0, 0, 0.2)'
+        ],
+        borderColor: [
+          'rgba(255, 26, 104, 1)',
+          'rgba(54, 162, 235, 1)',
+          'rgba(255, 206, 86, 1)',
+          'rgba(75, 192, 192, 1)',
+          'rgba(153, 102, 255, 1)',
+          'rgba(255, 159, 64, 1)',
+          'rgba(0, 0, 0, 1)'
+        ],
+        borderWidth: 1
+      }]
+    };
+
+    // config
+    const config = {
+      type: 'bar',
+      data,
+      options: {
+        scales: {
+          x: {
+            min: '2022-12-01',
+            max: '2022-12-10',
+            type: 'time',
+            time: {
+              unit: 'day'
+              }
+            },
+          y: {
+            beginAtZero: true
+          }
+        },
+        plugins: {
+          zoom: {
+            zoom: {
+              wheel: {
+                enabled: true
+              },
+              drag: {
+                enabled: true,
+                borderColor: 'rgba(0, 0, 0, 0.5)',
+                backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                borderWidth: 1,
+                mode: 'xy'
+              },
+              pan: {
+                enabled: true,
+                mode: 'xy' // Autorise le glissement dans les deux axes X et Y
+              },
+              zoomInText: '<i class="fas fa-search-plus"></i>',
+              zoomOutText: '<i class="fas fa-search-minus"></i>',
+              panText: '<i class="fas fa-hand-paper"></i>',
+              resetText: '<i class="fas fa-undo"></i>'
+            }
+          }
+        }
+      }
+    };
+
+    var resetButton = document.getElementById('zoomButton');
+    resetButton.addEventListener('click', function() {
+      myChart.resetZoom();
+    });
+
+    const myChart = new Chart(
+      document.getElementById('myChart'),
+      config
+    );
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1; // Les mois sont indexés à partir de 0, donc nous ajoutons 1
+        const day = date.getDate();
+
+        return `${year}-${month}-${day}`;
+    };
+
+
+    function getFirstAndLastDayOfWeek(weekNumber, year) {
+      
+      const firstDayOfYear = new Date(year, 0, 1); // Date du premier jour de l'année
+      console.log('first day of year')
+      console.log(firstDayOfYear)
+      var daysOffset = 1;
+      if (firstDayOfYear.getDay() == 0) {
+        daysOffset = 1;
+      } else{
+        daysOffset = 7 - firstDayOfYear.getDay() + 1;
+      }
+      console.log(daysOffset)      
+      console.log(firstDayOfYear.getDay())
+      const firstDayOfWeek = formatDate(new Date(year, 0, (weekNumber - 1) * 7 + 1 + daysOffset)); // Date du premier jour de la semaine
+      const lastDayOfWeek = formatDate(new Date(year, 0, weekNumber * 7 + daysOffset )); // Date du dernier jour de la semaine
+      console.log('first day of week')
+      console.log(firstDayOfWeek)
+      console.log('last day of week')
+      console.log(lastDayOfWeek)
+      
+      return {
+        firstDayOfWeek,
+        lastDayOfWeek
+      };
+    };
+
+    
+    function delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function myAsyncFunction(responseData, startDate, endDate) {
+      myChart.config.data.labels = responseData.time;
+      myChart.config.data.datasets.data = responseData.value;
+
+      await delay(1000); // Attendre pendant 2 secondes
+
+      myChart.config.options.scales.x.min = startDate;
+      myChart.config.options.scales.x.max = endDate;
+      myChart.update();
+    };
+
+
+    function filterbarplot(date){
+        console.log("selected date")
+        console.log(date.value);
+        const year = date.value.substring(0, 4);
+        const weeknumber = date.value.substring(6, 8);
+        const startDate = getFirstAndLastDayOfWeek(weeknumber, year).firstDayOfWeek
+        const endDate = getFirstAndLastDayOfWeek(weeknumber, year).lastDayOfWeek
+
+        const period = {
+            startDate: startDate,
+            endDate: endDate
+          };
+        fetch('/process', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(period)
+          })
+          .then(response => response.json())
+          .then(responseData => {
+           
+            myAsyncFunction(responseData, startDate, endDate);
+
+          })
+          .catch(error => {
+            // Gérez les erreurs
+          });
+
+    };
+
+    </script>
+
+  </body>
+</html>

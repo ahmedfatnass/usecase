@@ -1,0 +1,6 @@
+requests
+base64
+pandas
+datetime
+flask
+pytest
