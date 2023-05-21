@@ -64,7 +64,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.1.1/dist/chartjs-plugin-zoom.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-pan"></script>
     <script>
   
     const data = {
@@ -163,22 +162,14 @@
     function getFirstAndLastDayOfWeek(weekNumber, year) {
       
       const firstDayOfYear = new Date(year, 0, 1); // Date du premier jour de l'année
-      console.log('first day of year')
-      console.log(firstDayOfYear)
       var daysOffset = 1;
       if (firstDayOfYear.getDay() == 0) {
         daysOffset = 1;
       } else{
         daysOffset = 7 - firstDayOfYear.getDay() + 1;
       }
-      console.log(daysOffset)      
-      console.log(firstDayOfYear.getDay())
       const firstDayOfWeek = formatDate(new Date(year, 0, (weekNumber - 1) * 7 + 1 + daysOffset)); // Date du premier jour de la semaine
       const lastDayOfWeek = formatDate(new Date(year, 0, weekNumber * 7 + daysOffset )); // Date du dernier jour de la semaine
-      console.log('first day of week')
-      console.log(firstDayOfWeek)
-      console.log('last day of week')
-      console.log(lastDayOfWeek)
       
       return {
         firstDayOfWeek,
@@ -195,7 +186,7 @@
       myChart.config.data.labels = responseData.time;
       myChart.config.data.datasets.data = responseData.value;
 
-      await delay(1000); // Attendre pendant 2 secondes
+      // await delay(100); // Attendre pendant 2 secondes
 
       myChart.config.options.scales.x.min = startDate;
       myChart.config.options.scales.x.max = endDate;
@@ -204,8 +195,6 @@
 
 
     function filterbarplot(date){
-        console.log("selected date")
-        console.log(date.value);
         const year = date.value.substring(0, 4);
         const weeknumber = date.value.substring(6, 8);
         const startDate = getFirstAndLastDayOfWeek(weeknumber, year).firstDayOfWeek

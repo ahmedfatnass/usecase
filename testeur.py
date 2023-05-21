@@ -1,7 +1,5 @@
 from access import Access
 from data_process import DataProcess
-import json
-import pytest
 from app import app
 
 def test_access():
@@ -44,7 +42,7 @@ def test_plot_route():
         assert b'time' in response.data
         assert b'chart' in response.data
 
-def test_process_method():
+def test_process_route():
     with app.test_client() as client:
         url = '/process'
         period = {
