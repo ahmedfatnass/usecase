@@ -1,6 +1,8 @@
 from access import Access
 from data_process import DataProcess
-
+import json
+import pytest
+from app import app
 
 def test_access():
     new_access = Access()
@@ -32,3 +34,24 @@ def test_transform_data():
                                        start_date='2022-12-01T00:00:00%2B02:00',
                                        end_date='2022-12-10T23:00:00%2B02:00')
     assert (not data.isnull().any().any()) == True
+
+
+def test_plot_route():
+    with app.test_client() as client:
+        response = client.get('/')
+        assert response.status_code == 200
+        assert b'value' in response.data
+        assert b'time' in response.data
+        assert b'chart' in response.data
+
+def test_process_method():
+    with app.test_client() as client:
+        url = '/process'
+        period = {
+            'startDate': '2022-5-10',
+            'endDate': '2022-5-20'
+        }
+        response = client.post(url, json=period)
+        assert response.status_code == 200
+        response_data = response.get_json()
+        assert len(response_data['time']) != 0 and len(response_data['value']) != 0
